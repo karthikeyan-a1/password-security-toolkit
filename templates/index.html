@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Password Security Toolkit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0e17;
+      --surface:   #111827;
+      --border:    #1e2d40;
+      --accent:    #00d4ff;
+      --accent2:   #7c3aed;
+      --text:      #e2e8f0;
+      --muted:     #64748b;
+      --weak:      #ef4444;
+      --fair:      #f97316;
+      --good:      #eab308;
+      --strong:    #22c55e;
+      --mono:      'JetBrains Mono', monospace;
+      --sans:      'Inter', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    .tag {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+    h1 {
+      font-family: var(--mono);
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    h1 span { color: var(--accent); }
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    /* ── Layout ── */
+    .container { max-width: 860px; margin: 0 auto; }
+
+    /* ── Input Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .card-title {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 1.25rem;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 0.75rem;
+      align-items: stretch;
+    }
+    .input-wrap {
+      position: relative;
+      flex: 1;
+    }
+    input[type="password"], input[type="text"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 1rem;
+      padding: 0.8rem 3rem 0.8rem 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus { border-color: var(--accent); }
+
+    .toggle-vis {
+      position: absolute;
+      right: 0.9rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0;
+    }
+
+    .btn {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      padding: 0 1.5rem;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Strength Bar ── */
+    .strength-section { margin-top: 1.25rem; }
+    .strength-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .strength-label { font-size: 0.8rem; color: var(--muted); }
+    .strength-value {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      transition: color 0.3s;
+    }
+    .strength-value.weak   { color: var(--weak); }
+    .strength-value.fair   { color: var(--fair); }
+    .strength-value.good   { color: var(--good); }
+    .strength-value.strong { color: var(--strong); }
+
+    .bar-track {
+      height: 6px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      width: 0%;
+      transition: width 0.5s ease, background 0.3s;
+    }
+    .bar-fill.weak   { background: var(--weak); }
+    .bar-fill.fair   { background: var(--fair); }
+    .bar-fill.good   { background: var(--good); }
+    .bar-fill.strong { background: var(--strong); }
+
+    /* ── Checks Grid ── */
+    .checks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 0.6rem;
+      margin-top: 1.25rem;
+    }
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+      transition: color 0.3s;
+    }
+    .check-item.pass { color: var(--strong); }
+    .check-item.fail { color: var(--muted); }
+    .check-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .check-item.pass .check-dot { background: var(--strong); }
+    .check-item.fail .check-dot { background: var(--border); }
+
+    /* ── Feedback ── */
+    .feedback-list {
+      margin-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .feedback-item {
+      font-size: 0.8rem;
+      color: var(--muted);
+      padding-left: 1rem;
+      border-left: 2px solid var(--border);
+    }
+    .feedback-item.tip { border-color: var(--accent); color: var(--text); }
+
+    /* ── Hashes ── */
+    .hash-row {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .hash-item { }
+    .hash-algo {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 0.3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .hash-badge {
+      font-size: 0.6rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 99px;
+      border: 1px solid;
+    }
+    .hash-badge.danger  { border-color: var(--weak);   color: var(--weak); }
+    .hash-badge.warning { border-color: var(--fair);   color: var(--fair); }
+    .hash-badge.safe    { border-color: var(--strong); color: var(--strong); }
+
+    .hash-value {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.6rem 0.9rem;
+      word-break: break-all;
+      position: relative;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .hash-value:hover { border-color: var(--accent); }
+    .hash-value::after {
+      content: "copy";
+      position: absolute;
+      right: 0.6rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.6rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+    .hash-value.copied { border-color: var(--strong); }
+    .hash-value.copied::after { content: "copied!"; color: var(--strong); }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1rem 0;
+    }
+
+    /* ── Salt explainer ── */
+    .salt-box {
+      background: #0f1c2e;
+      border: 1px solid #1e3a5f;
+      border-radius: 8px;
+      padding: 1rem 1.1rem;
+    }
+    .salt-box p { font-size: 0.82rem; color: #94a3b8; line-height: 1.6; }
+    .salt-box strong { color: var(--accent); font-family: var(--mono); }
+
+    /* ── Hidden ── */
+    .hidden { display: none; }
+
+    /* ── Loader ── */
+    .loader {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 0.4rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="tag">// cryptography project</div>
+    <h1>Password <span>Security</span> Toolkit</h1>
+    <p class="subtitle">Analyze strength · Explore hashing algorithms · Understand salting</p>
+  </header>
+
+  <!-- Input -->
+  <div class="card">
+    <div class="card-title">01 — Enter a Password</div>
+    <div class="input-row">
+      <div class="input-wrap">
+        <input type="password" id="passwordInput" placeholder="Type a password to analyze..." autocomplete="off" />
+        <button class="toggle-vis" id="toggleVis" title="Show/hide">👁</button>
+      </div>
+      <button class="btn" id="analyzeBtn">Analyze</button>
+    </div>
+
+    <!-- Strength Bar -->
+    <div class="strength-section hidden" id="strengthSection">
+      <div class="strength-label-row">
+        <span class="strength-label">Strength</span>
+        <span class="strength-value" id="strengthValue"></span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill" id="barFill"></div>
+      </div>
+
+      <div class="checks-grid" id="checksGrid"></div>
+      <div class="feedback-list" id="feedbackList"></div>
+    </div>
+  </div>
+
+  <!-- Hashes -->
+  <div class="card hidden" id="hashCard">
+    <div class="card-title">02 — Hash Comparison</div>
+    <p style="font-size:0.82rem; color:var(--muted); margin-bottom:1.25rem;">
+      The same password hashed by different algorithms. Click any hash to copy it.
+    </p>
+    <div class="hash-row" id="hashRow"></div>
+
+    <hr class="divider">
+
+    <div class="card-title">03 — Salting Demo</div>
+    <div class="salt-box" id="saltBox"></div>
+  </div>
+
+</div>
+
+<script>
+  const input    = document.getElementById("passwordInput");
+  const btn      = document.getElementById("analyzeBtn");
+  const toggleVis = document.getElementById("toggleVis");
+
+  // Toggle visibility
+  toggleVis.addEventListener("click", () => {
+    const isPassword = input.type === "password";
+    input.type = isPassword ? "text" : "password";
+    toggleVis.textContent = isPassword ? "🙈" : "👁";
+  });
+
+  // Enter key
+  input.addEventListener("keydown", e => { if (e.key === "Enter") analyze(); });
+  btn.addEventListener("click", analyze);
+
+  async function analyze() {
+    const password = input.value;
+    if (!password) return;
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loader"></span>Analyzing…';
+
+    try {
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json();
+      renderStrength(data.strength);
+      renderHashes(data.hashes);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Analyze";
+    }
+  }
+
+  function renderStrength(s) {
+    document.getElementById("strengthSection").classList.remove("hidden");
+
+    // Bar
+    const pct = Math.round((s.score / s.max_score) * 100);
+    const fill = document.getElementById("barFill");
+    fill.className = `bar-fill ${s.color}`;
+    requestAnimationFrame(() => { fill.style.width = pct + "%"; });
+
+    // Label
+    const val = document.getElementById("strengthValue");
+    val.textContent = s.strength;
+    val.className = `strength-value ${s.color}`;
+
+    // Checks
+    const checkLabels = {
+      length_8:      "At least 8 chars",
+      length_12:     "At least 12 chars",
+      length_16:     "At least 16 chars",
+      has_uppercase: "Uppercase letter",
+      has_lowercase: "Lowercase letter",
+      has_digit:     "Number",
+      has_special:   "Special character",
+      not_common:    "Not a common password",
+    };
+    const grid = document.getElementById("checksGrid");
+    grid.innerHTML = Object.entries(s.checks).map(([k, v]) => `
+      <div class="check-item ${v ? "pass" : "fail"}">
+        <div class="check-dot"></div>
+        <span>${checkLabels[k] || k}</span>
+      </div>
+    `).join("");
+
+    // Feedback
+    const fb = document.getElementById("feedbackList");
+    fb.innerHTML = s.feedback.map((f, i) => `
+      <div class="feedback-item ${i === 0 && s.feedback.length === 1 ? "tip" : ""}">${f}</div>
+    `).join("");
+  }
+
+  function renderHashes(h) {
+    document.getElementById("hashCard").classList.remove("hidden");
+
+    const algos = [
+      { key: "md5",          label: "MD5",             badge: "danger",  note: "Broken — never use for passwords" },
+      { key: "sha1",         label: "SHA-1",           badge: "danger",  note: "Deprecated — collision attacks known" },
+      { key: "sha256",       label: "SHA-256",         badge: "warning", note: "Fast hash — better, but needs salting" },
+      { key: "sha512",       label: "SHA-512",         badge: "warning", note: "Stronger output length, still needs salting" },
+      { key: "sha256_salted",label: "SHA-256 + Salt",  badge: "safe",    note: "Adds randomness — defeats rainbow tables" },
+      { key: "bcrypt",       label: "bcrypt",          badge: "safe",    note: "Recommended — slow by design, built-in salt" },
+    ];
+
+    document.getElementById("hashRow").innerHTML = algos.map(a => `
+      <div class="hash-item">
+        <div class="hash-algo">
+          ${a.label}
+          <span class="hash-badge ${a.badge}">${a.badge === "danger" ? "⚠ insecure" : a.badge === "warning" ? "use carefully" : "✓ recommended"}</span>
+          <span style="color:var(--muted);font-size:0.68rem;font-weight:400;">${a.note}</span>
+        </div>
+        <div class="hash-value" onclick="copyHash(this, '${h[a.key]}')">${h[a.key]}</div>
+      </div>
+    `).join('<hr class="divider">');
+
+    // Salt explanation
+    document.getElementById("saltBox").innerHTML = `
+      <p>
+        A <strong>salt</strong> is a random value added to a password before hashing it.
+        Without salting, identical passwords produce identical hashes — making it trivial to crack them with a 
+        <em>rainbow table</em> (a precomputed list of hashes).
+      </p>
+      <p style="margin-top:0.6rem;">
+        Your generated salt: <strong>${h.salt}</strong><br>
+        Adding it to your password before hashing completely changes the output — even if two users have the same password, their hashes will differ.
+      </p>
+    `;
+  }
+
+  function copyHash(el, value) {
+    navigator.clipboard.writeText(value).then(() => {
+      el.classList.add("copied");
+      setTimeout(() => el.classList.remove("copied"), 1500);
+    });
+  }
+</script>
+</body>
+</html>
