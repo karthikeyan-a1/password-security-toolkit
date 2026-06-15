@@ -71,7 +71,7 @@ password-security-toolkit/
 
 ## Author
 
-Built by [Your Name](https://github.com/YOUR_USERNAME) as a cybersecurity learning project.
+Built by [karthikeyan](https://github.com/karthikeyan-a1) as a cybersecurity learning project.
 
 ## License
 
