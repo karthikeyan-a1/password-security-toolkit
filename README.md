@@ -60,8 +60,7 @@ password-security-toolkit/
 
 ## Screenshots
 
-> Add a screenshot of the running app here after your first run!
-
+![Password Security Toolkit](assets/screenshot.png)
 ## What I Learned
 
 - How password hashing works under the hood
